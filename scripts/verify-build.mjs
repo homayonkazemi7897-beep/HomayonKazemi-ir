@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { readFile, access } from 'node:fs/promises';
+const production = process.argv.includes('--production');
+for (const [path, lang, name, suffix] of [['dist/index.html', 'fa-IR', 'همایون', '/'], ['dist/en/index.html', 'en', 'Homayoun', '/en/']]) {
+  const html = await readFile(path, 'utf8');
+  assert.ok(html.includes(`lang="${lang}"`), `Language: ${path}`);
+  assert.ok(html.includes(name), `Name: ${path}`);
+  assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `Exactly one h1: ${path}`);
+  assert.ok(html.includes(`href="https://homayonkazemi.ir${suffix}"`), `Canonical: ${path}`);
+  for (const variant of ['fa', 'en', 'x-default']) assert.ok(html.includes(`hreflang="${variant}"`));
+  assert.ok(html.includes(production ? 'content="index, follow"' : 'content="noindex, nofollow"'));
+  for (const domain of ['darman-yab.ir','jornilo.com','nobetra.ir','roshdyar.com','payam-saz.ir','journalsaz.ir']) assert.ok(html.includes(`href="https://${domain}"`));
+  assert.ok(html.includes('09305907217'), 'Confirmed phone is displayed');
+  assert.ok(html.includes('https://wa.me/989305907217'));
+  assert.ok(html.includes('https://t.me/+989305907217'));
+  assert.ok(html.includes('Node.js') && html.includes('Django'));
+  assert.ok(html.includes('homayoun-kazemi-' + (lang === 'en' ? 'en' : 'fa') + '.pdf'));
+  assert.ok(!html.includes('ContentDraft'), 'No placeholder component');
+  const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+  assert.equal(schema.mainEntity.name, 'همایون کاظمی');
+  assert.equal(schema.mainEntity['@type'], 'Person');
+  assert.ok(schema.mainEntity.alternateName.includes('محمد کاظمی'));
+  console.log(`Verified ${path}: language, identity, SEO, projects, indexing mode`);
+}
+const robots = await readFile('dist/robots.txt', 'utf8');
+assert.ok(robots.includes(production ? 'Allow: /' : 'Disallow: /'));
+const sitemap = await readFile('dist/sitemap.xml', 'utf8');
+assert.equal((sitemap.match(/<url>/g) ?? []).length, 2);
+await access('dist/images/professional-headshot.webp');
+await access('dist/favicon.svg');
+console.log('Verified robots, bilingual sitemap and social image.');

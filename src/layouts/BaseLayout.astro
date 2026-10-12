@@ -1,0 +1,64 @@
+---
+import '../styles/global.css';
+import { canonical, content, site, type Locale } from '../data/site';
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = content[locale];
+const url = canonical(locale);
+const profileId = `${site.origin}/#person`;
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  '@id': `${url}#profile`,
+  url,
+  name: copy.title,
+  inLanguage: copy.lang,
+  mainEntity: {
+    '@type': 'Person',
+    '@id': profileId,
+    name: 'همایون کاظمی',
+    alternateName: ['محمد کاظمی', 'Homayoun Kazemi', 'Homayon Kazemi'],
+    url: `${site.origin}/`,
+    image: `${site.origin}/images/professional-headshot.webp`,
+    description: copy.description,
+    jobTitle: copy.role,
+    email: site.email,
+    telephone: site.internationalPhone,
+    homeLocation: { '@type': 'Place', name: 'Kerman, Iran' },
+    sameAs: [site.github],
+    knowsAbout: ['Full-stack development', 'Node.js', 'React', 'Django', 'PHP', 'Web development', 'WordPress', 'Plugin development', 'Web applications', 'API integration'],
+  },
+};
+const jsonLd = JSON.stringify(schema).replace(/</g, '\\u003c');
+---
+<!doctype html>
+<html lang={copy.lang} dir={copy.direction}>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#192c37" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{copy.title}</title>
+    <meta name="description" content={copy.description} />
+    <meta name="robots" content={site.indexable ? 'index, follow' : 'noindex, nofollow'} />
+    <link rel="canonical" href={url} />
+    <link rel="alternate" hreflang="fa" href={canonical('fa')} />
+    <link rel="alternate" hreflang="en" href={canonical('en')} />
+    <link rel="alternate" hreflang="x-default" href={canonical('fa')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Homayoun Kazemi" />
+    <meta property="og:title" content={copy.title} />
+    <meta property="og:description" content={copy.description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:locale" content={locale === 'fa' ? 'fa_IR' : 'en_US'} />
+    <meta property="og:locale:alternate" content={locale === 'fa' ? 'en_US' : 'fa_IR'} />
+    <meta property="og:image" content={`${site.origin}/images/professional-headshot.webp`} />
+    <meta property="og:image:alt" content={copy.name} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={jsonLd} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

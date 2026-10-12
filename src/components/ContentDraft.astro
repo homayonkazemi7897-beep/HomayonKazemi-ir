@@ -1,0 +1,52 @@
+---
+import { content, paths, projects, site, type Locale } from '../data/site';
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const copy = content[locale];
+const alternateLocale = locale === 'fa' ? 'en' : 'fa';
+---
+<!-- Semantic content only. Visual composition and styling are intentionally pending. -->
+{!site.indexable && <aside role="note">{copy.draftNotice}</aside>}
+<header>
+  <nav aria-label={locale === 'fa' ? 'انتخاب زبان' : 'Language selection'}>
+    <a href={paths[alternateLocale]} lang={alternateLocale} hreflang={alternateLocale}>{copy.languageLabel}</a>
+  </nav>
+</header>
+<main id="main-content">
+  <section aria-labelledby="intro-title">
+    <h1 id="intro-title">{copy.name}</h1>
+    <p>{copy.role}</p>
+    <p>{copy.intro}</p>
+    <p>{copy.availability}</p>
+    <a href="#projects">{copy.projectsTitle}</a>
+    <a href="#contact">{copy.contactTitle}</a>
+  </section>
+  <section id="projects" aria-labelledby="projects-title">
+    <h2 id="projects-title">{copy.projectsTitle}</h2>
+    {projects.map(project => (
+      <article>
+        <h3><bdi>{project.domain}</bdi></h3>
+        <p>{copy.projectRole}</p>
+        {project.note[locale] && <p>{project.note[locale]}</p>}
+        <a href={project.url} target="_blank" rel="noopener noreferrer" aria-label={`${copy.visitProject}: ${project.domain}`}>{copy.visitProject}</a>
+      </article>
+    ))}
+  </section>
+  <section id="services" aria-labelledby="services-title">
+    <h2 id="services-title">{copy.servicesTitle}</h2>
+    {copy.services.map(service => <article><h3>{service.title}</h3><p>{service.text}</p></article>)}
+  </section>
+  <section id="about" aria-labelledby="about-title">
+    <h2 id="about-title">{copy.aboutTitle}</h2>
+    {copy.about.map(paragraph => <p>{paragraph}</p>)}
+    <h3>{copy.educationTitle}</h3>
+    <ul>{copy.education.map(item => <li>{item.degree} — {item.university}</li>)}</ul>
+  </section>
+  <section id="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title">{copy.contactTitle}</h2>
+    <p>{copy.contactText}</p>
+    <a href={`mailto:${site.email}`}><bdi>{site.email}</bdi></a>
+    <a href={site.github} target="_blank" rel="noopener noreferrer">{copy.githubLabel}</a>
+  </section>
+</main>
+<footer><p>{copy.name} — {copy.role}</p></footer>
